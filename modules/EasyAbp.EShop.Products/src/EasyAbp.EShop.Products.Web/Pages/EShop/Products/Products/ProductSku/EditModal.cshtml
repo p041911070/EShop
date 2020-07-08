@@ -1,0 +1,21 @@
+@page
+@using EasyAbp.EShop.Products.Localization
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Modal
+@inject IHtmlLocalizer<ProductsResource> L
+@model EasyAbp.EShop.Products.Web.Pages.EShop.Products.Products.ProductSku.EditModalModel
+@{
+    Layout = null;
+}
+<abp-dynamic-form abp-model="ProductSku" data-ajaxForm="true" asp-page="EditModal">
+    <abp-modal>
+        <abp-modal-header title="@L["EditProductSku"].Value"></abp-modal-header>
+        <abp-modal-body>
+            <abp-input asp-for="StoreId" />
+            <abp-input asp-for="ProductId" />
+            <abp-input asp-for="ProductSkuId" />
+            <abp-form-content />
+        </abp-modal-body>
+        <abp-modal-footer buttons="@(AbpModalButtons.Cancel|AbpModalButtons.Save)"></abp-modal-footer>
+    </abp-modal>
+</abp-dynamic-form>

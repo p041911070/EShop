@@ -1,19 +1,19 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\..\common.props" />
+  <Import Project="..\..\..\..\common.props" />
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>EasyAbp.EShop.Stores</RootNamespace>
+    <RootNamespace />
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Volo.Abp.Validation" Version="2.5.0" />
+    <PackageReference Include="Volo.Abp.Validation" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Localization\Stores\*.json" />
-    <Content Remove="Localization\Stores\*.json" />
+    <EmbeddedResource Include="EasyAbp\EShop\Stores\Localization\Stores\*.json" />
+    <Content Remove="EasyAbp\EShop\Stores\Localization\Stores\*.json" />
   </ItemGroup>
 
 </Project>

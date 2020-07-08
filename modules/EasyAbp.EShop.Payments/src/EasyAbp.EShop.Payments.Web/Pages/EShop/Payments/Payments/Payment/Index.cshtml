@@ -1,0 +1,66 @@
+@page
+@using Microsoft.AspNetCore.Authorization
+@using EasyAbp.EShop.Payments.Localization
+@using EasyAbp.EShop.Payments.Web.Menus
+@using EasyAbp.EShop.Payments.Web.Pages.EShop.Payments.Payments.Payment
+@using Microsoft.Extensions.Localization
+@using Volo.Abp.AspNetCore.Mvc.UI.Layout
+@model IndexModel
+@inject IPageLayout PageLayout
+@inject IStringLocalizer<PaymentsResource> L
+@inject IAuthorizationService Authorization
+@{
+    PageLayout.Content.Title = L["Payment"].Value;
+    PageLayout.Content.BreadCrumb.Add(L["Menu:Payment"].Value);
+    PageLayout.Content.MenuItemName = PaymentsMenus.Payment;
+    
+    var cardTitle = L["Payment"].Value;
+    
+    if (Model.StoreName != null)
+    {
+        cardTitle += $" - {Model.StoreName}";
+    }
+    
+    if (Model.UserName != null)
+    {
+        cardTitle += $" - {Model.UserName}";
+    }
+}
+
+@section scripts
+{
+    <abp-script src="/Pages/EShop/Payments/Payments/Payment/index.js" />
+}
+@section styles
+{
+    <abp-style src="/Pages/EShop/Payments/Payments/Payment/index.css"/>
+}
+
+<abp-card>
+    <abp-card-header>
+        <abp-row>
+            <abp-column size-md="_6">
+                <abp-card-title>@cardTitle</abp-card-title>
+            </abp-column>
+        </abp-row>
+    </abp-card-header>
+    <abp-card-body>
+        <abp-table striped-rows="true" id="PaymentTable" class="nowrap">
+            <thead>
+            <tr>
+                <th>@L["Actions"]</th>
+                <th>@L["PaymentStoreId"]</th>
+                <th>@L["PaymentPaymentMethod"]</th>
+                <th>@L["PaymentExternalTradingCode"]</th>
+                <th>@L["PaymentCurrency"]</th>
+                <th>@L["PaymentOriginalPaymentAmount"]</th>
+                <th>@L["PaymentPaymentDiscount"]</th>
+                <th>@L["PaymentActualPaymentAmount"]</th>
+                <th>@L["PaymentRefundAmount"]</th>
+                <th>@L["PaymentCompletionTime"]</th>
+                <th>@L["PaymentCanceledTime"]</th>
+            </tr>
+            </thead>
+        </abp-table>
+    </abp-card-body>
+</abp-card>
