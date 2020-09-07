@@ -4,7 +4,8 @@ using Volo.Abp.Application.Dtos;
 
 namespace EasyAbp.EShop.Orders.Orders.Dtos
 {
-    public class OrderDto : ExtensibleFullAuditedEntityDto<Guid>
+    [Serializable]
+    public class OrderDto : ExtensibleFullAuditedEntityDto<Guid>, IOrder
     {
         public Guid StoreId { get; set; }
         
@@ -21,8 +22,10 @@ namespace EasyAbp.EShop.Orders.Orders.Dtos
         public decimal TotalDiscount { get; set; }
 
         public decimal TotalPrice { get; set; }
+        
+        public decimal ActualTotalPrice { get; set; }
 
-        public decimal RefundedAmount { get; set; }
+        public decimal RefundAmount { get; set; }
 
         public string CustomerRemark { get; set; }
 
@@ -36,6 +39,8 @@ namespace EasyAbp.EShop.Orders.Orders.Dtos
 
         public DateTime? CanceledTime { get; set; }
         
+        public string CancellationReason { get; set; }
+
         public DateTime? ReducedInventoryAfterPlacingTime { get; set; }
         
         public DateTime? ReducedInventoryAfterPaymentTime { get; set; }

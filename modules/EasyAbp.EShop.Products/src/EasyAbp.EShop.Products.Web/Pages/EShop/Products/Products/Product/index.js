@@ -13,7 +13,6 @@ $(function () {
         searching: false,
         autoWidth: false,
         scrollCollapse: true,
-        order: [[1, "asc"]],
         ajax: abp.libs.datatables.createAjax(service.getList, function () {
             return { storeId: storeId, categoryId: categoryId, showHidden: true }
         }),
@@ -50,8 +49,8 @@ $(function () {
                         ]
                 }
             },
-            { data: "productTypeId" },
-            { data: "code" },
+            { data: "productGroupDisplayName" },
+            { data: "uniqueName" },
             { data: "displayName" },
             { data: "inventoryStrategy" },
             { data: "sold" },

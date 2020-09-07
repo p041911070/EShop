@@ -3,7 +3,6 @@ using EasyAbp.EShop.Products.ProductDetailHistories;
 using EasyAbp.EShop.Products.ProductHistories;
 using EasyAbp.EShop.Products.ProductStores;
 using EasyAbp.EShop.Products.ProductCategories;
-using EasyAbp.EShop.Products.ProductTypes;
 using EasyAbp.EShop.Products.Categories;
 using EasyAbp.EShop.Products.Products;
 using System;
@@ -54,6 +53,8 @@ namespace EasyAbp.EShop.Products.EntityFrameworkCore
                 b.ToTable(options.TablePrefix + "Products", options.Schema);
                 b.ConfigureByConvention(); 
                 /* Configure more properties here */
+                
+                b.HasIndex(x => x.UniqueName).IsUnique();
             });
             
             builder.Entity<ProductDetail>(b =>
@@ -91,13 +92,8 @@ namespace EasyAbp.EShop.Products.EntityFrameworkCore
                 b.ToTable(options.TablePrefix + "Categories", options.Schema);
                 b.ConfigureByConvention(); 
                 /* Configure more properties here */
-            });
 
-            builder.Entity<ProductType>(b =>
-            {
-                b.ToTable(options.TablePrefix + "ProductTypes", options.Schema);
-                b.ConfigureByConvention(); 
-                /* Configure more properties here */
+                b.HasIndex(x => x.UniqueName).IsUnique();
             });
 
             builder.Entity<ProductCategory>(b =>

@@ -49,7 +49,8 @@ namespace EasyAbp.EShop.Orders.EntityFrameworkCore
                 b.Property(x => x.ProductTotalPrice).HasColumnType("decimal(20,8)");
                 b.Property(x => x.TotalPrice).HasColumnType("decimal(20,8)");
                 b.Property(x => x.TotalDiscount).HasColumnType("decimal(20,8)");
-                b.Property(x => x.RefundedAmount).HasColumnType("decimal(20,8)");
+                b.Property(x => x.ActualTotalPrice).HasColumnType("decimal(20,8)");
+                b.Property(x => x.RefundAmount).HasColumnType("decimal(20,8)");
                 b.HasIndex(x => x.OrderNumber).IsUnique();
             });
             
@@ -60,7 +61,9 @@ namespace EasyAbp.EShop.Orders.EntityFrameworkCore
                 /* Configure more properties here */
                 b.Property(x => x.TotalPrice).HasColumnType("decimal(20,8)");
                 b.Property(x => x.TotalDiscount).HasColumnType("decimal(20,8)");
+                b.Property(x => x.ActualTotalPrice).HasColumnType("decimal(20,8)");
                 b.Property(x => x.UnitPrice).HasColumnType("decimal(20,8)");
+                b.Property(x => x.RefundAmount).HasColumnType("decimal(20,8)");
             });
         }
     }

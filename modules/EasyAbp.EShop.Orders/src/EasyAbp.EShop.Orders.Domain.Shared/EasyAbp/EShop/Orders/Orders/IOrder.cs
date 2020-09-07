@@ -1,9 +1,10 @@
 ﻿using System;
 using EasyAbp.EShop.Stores.Stores;
+using Volo.Abp.Data;
 
 namespace EasyAbp.EShop.Orders.Orders
 {
-    public interface IOrder : IMultiStore
+    public interface IOrder : IMultiStore, IHasExtraProperties
     {
         string OrderNumber { get; }
         
@@ -19,7 +20,12 @@ namespace EasyAbp.EShop.Orders.Orders
         
         decimal TotalPrice { get; }
         
-        decimal RefundedAmount { get; }
+        /// <summary>
+        /// ActualTotalPrice = TotalPrice - TotalDiscount
+        /// </summary>
+        decimal ActualTotalPrice { get; }
+
+        decimal RefundAmount { get; }
         
         string CustomerRemark { get; }
         
@@ -32,6 +38,8 @@ namespace EasyAbp.EShop.Orders.Orders
         DateTime? CompletionTime { get; }
         
         DateTime? CanceledTime { get; }
+        
+        string CancellationReason { get; }
         
         DateTime? ReducedInventoryAfterPlacingTime { get; }
         

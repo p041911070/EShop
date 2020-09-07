@@ -6,11 +6,11 @@ namespace EasyAbp.EShop.Products.Products
 {
     public interface IProduct : IHasExtraProperties
     {
-        Guid ProductTypeId { get; }
+        string ProductGroupName { get; }
         
         Guid ProductDetailId { get; }
 
-        string Code { get; }
+        string UniqueName { get; }
 
         string DisplayName { get; }
         

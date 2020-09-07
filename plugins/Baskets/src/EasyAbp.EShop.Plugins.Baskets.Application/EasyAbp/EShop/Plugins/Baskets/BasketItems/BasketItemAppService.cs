@@ -78,9 +78,9 @@ namespace EasyAbp.EShop.Plugins.Baskets.BasketItems
         {
             await CheckGetListPolicyAsync();
             
-            if (input.UserId != CurrentUser.GetId() && !await IsCurrentUserManagerAsync())
+            if (input.UserId != CurrentUser.GetId())
             {
-                throw new AbpAuthorizationException();
+                await AuthorizationService.CheckAsync(BasketsPermissions.BasketItem.Manage);
             }
 
             var query = CreateFilteredQuery(input);
@@ -154,7 +154,9 @@ namespace EasyAbp.EShop.Plugins.Baskets.BasketItems
             item.UpdateProductData(quantity, new ProductDataModel
             {
                 MediaResources = productSkuDto.MediaResources ?? productDto.MediaResources,
-                ProductName = productDto.DisplayName,
+                ProductUniqueName = productDto.UniqueName,
+                ProductDisplayName = productDto.DisplayName,
+                SkuName = productSkuDto.Name,
                 SkuDescription = await _productSkuDescriptionProvider.GenerateAsync(productDto, productSkuDto),
                 Currency = productSkuDto.Currency,
                 UnitPrice = productSkuDto.DiscountedPrice,

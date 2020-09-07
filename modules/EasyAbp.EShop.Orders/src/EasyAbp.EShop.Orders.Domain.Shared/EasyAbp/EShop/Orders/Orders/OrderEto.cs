@@ -26,14 +26,16 @@ namespace EasyAbp.EShop.Orders.Orders
         public decimal TotalDiscount { get; set; }
 
         public decimal TotalPrice { get; set; }
+        
+        public decimal ActualTotalPrice { get; set; }
 
-        public decimal RefundedAmount { get; set; }
+        public decimal RefundAmount { get; set; }
 
         public string CustomerRemark { get; set; }
 
         public string StaffRemark { get; set; }
         
-        public Guid? PaymentId { get; }
+        public Guid? PaymentId { get; set; }
 
         public DateTime? PaidTime { get; set; }
 
@@ -41,10 +43,14 @@ namespace EasyAbp.EShop.Orders.Orders
 
         public DateTime? CanceledTime { get; set; }
         
-        public DateTime? ReducedInventoryAfterPlacingTime { get; }
+        public string CancellationReason { get; set; }
+
+        public DateTime? ReducedInventoryAfterPlacingTime { get; set; }
         
-        public DateTime? ReducedInventoryAfterPaymentTime { get; }
+        public DateTime? ReducedInventoryAfterPaymentTime { get; set; }
 
         public List<OrderLineEto> OrderLines { get; set; }
+        
+        public Dictionary<string, object> ExtraProperties { get; set; }
     }
 }

@@ -6,23 +6,21 @@ using Volo.Abp.Application.Dtos;
 namespace EasyAbp.EShop.Products.Products.Dtos
 {
     [Serializable]
-    public class ProductDto : FullAuditedEntityDto<Guid>
+    public class ProductDto : ExtensibleFullAuditedEntityDto<Guid>
     {
-        public Guid ProductTypeId { get; set; }
+        public string ProductGroupName { get; set; }
         
-        public string ProductTypeName { get; set; }
+        public string ProductGroupDisplayName { get; set; }
 
         public Guid ProductDetailId { get; set; }
 
-        public string Code { get; set; }
+        public string UniqueName { get; set; }
         
         public string DisplayName { get; set; }
         
         public InventoryStrategy InventoryStrategy { get; set; }
         
         public string MediaResources { get; set; }
-        
-        public string SpecifiedInventoryProviderName { get; set; }
         
         public int DisplayOrder { get; set; }
 

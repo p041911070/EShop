@@ -8,8 +8,8 @@ namespace EasyAbp.EShop.Products.Web.Pages.EShop.Products.Products.ProductSku.Vi
 {
     public class EditProductSkuViewModel
     {
-        [Display(Name = "ProductSkuCode")]
-        public string Code { get; set; }
+        [Display(Name = "ProductSkuName")]
+        public string Name { get; set; }
         
         [Required]
         [Display(Name = "ProductSkuCurrency")]
@@ -34,10 +34,6 @@ namespace EasyAbp.EShop.Products.Web.Pages.EShop.Products.Products.ProductSku.Vi
         
         [Display(Name = "ProductSkuMediaResources")]
         public string MediaResources { get; set; }
-        
-        [Placeholder("KeepEmptyIfDoNotKnow")]
-        [Display(Name = "ProductSkuSpecifiedInventoryProviderName")]
-        public string SpecifiedInventoryProviderName { get; set; }
         
         [HiddenInput]
         [Display(Name = "ProductSkuProductDetailId")]

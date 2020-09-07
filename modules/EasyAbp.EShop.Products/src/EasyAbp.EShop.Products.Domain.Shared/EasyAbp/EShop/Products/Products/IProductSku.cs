@@ -1,12 +1,13 @@
 ﻿using System;
+using Volo.Abp.Data;
 
 namespace EasyAbp.EShop.Products.Products
 {
-    public interface IProductSku
+    public interface IProductSku : IHasExtraProperties
     {
         string SerializedAttributeOptionIds { get; }
         
-        string Code { get; }
+        string Name { get; }
         
         string Currency { get; }
         
@@ -20,6 +21,6 @@ namespace EasyAbp.EShop.Products.Products
         
         string MediaResources { get; }
         
-        public Guid? ProductDetailId { get; }
+        Guid? ProductDetailId { get; }
     }
 }

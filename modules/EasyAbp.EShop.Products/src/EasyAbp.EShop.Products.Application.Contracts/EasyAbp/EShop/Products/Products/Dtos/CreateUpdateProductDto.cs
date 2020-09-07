@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Volo.Abp.ObjectExtending;
 
 namespace EasyAbp.EShop.Products.Products.Dtos
 {
-    public class CreateUpdateProductDto : IValidatableObject
+    [Serializable]
+    public class CreateUpdateProductDto : ExtensibleObject
     {
-        [DisplayName("ProductProductTypeId")]
-        public Guid ProductTypeId { get; set; }
+        [DisplayName("ProductProductGroupName")]
+        public string ProductGroupName { get; set; }
         
         [DisplayName("ProductDetailId")]
         public Guid ProductDetailId { get; set; }
@@ -23,8 +25,8 @@ namespace EasyAbp.EShop.Products.Products.Dtos
         [DisplayName("ProductCategory")]
         public ICollection<Guid> CategoryIds { get; set; }
         
-        [DisplayName("ProductCode")]
-        public string Code { get; set; }
+        [DisplayName("ProductUniqueName")]
+        public string UniqueName { get; set; }
         
         [Required]
         [DisplayName("ProductDisplayName")]
@@ -40,15 +42,14 @@ namespace EasyAbp.EShop.Products.Products.Dtos
 
         [DisplayName("ProductMediaResources")]
         public string MediaResources { get; set; }
-        
-        [DisplayName("ProductSpecifiedInventoryProviderName")]
-        public string SpecifiedInventoryProviderName { get; set; }
 
         [DisplayName("ProductIsPublished")]
         public bool IsPublished { get; set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+            base.Validate(validationContext);
+            
             if (ProductAttributes.Select(a => a.DisplayName.Trim()).Distinct().Count() != ProductAttributes.Count)
             {
                 yield return new ValidationResult(

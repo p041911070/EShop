@@ -11,8 +11,6 @@ namespace EasyAbp.EShop.Products.Products
 {
     public class DefaultProductInventoryProvider : IProductInventoryProvider, ITransientDependency
     {
-        public string ProviderName { get; } = "Default";
-
         // Todo: should use IProductInventoryStore.
         private readonly IUnitOfWorkManager _unitOfWorkManager;
         private readonly IDistributedEventBus _distributedEventBus;
@@ -74,11 +72,15 @@ namespace EasyAbp.EShop.Products.Products
                 return false;
             }
 
+            using var uow = _unitOfWorkManager.Begin(isTransactional: true);
+            
             await _productInventoryRepository.UpdateAsync(productInventory, true);
             
-            PublishInventoryChangedEventOnUowCompleted(productInventory.ProductId, productInventory.ProductSkuId,
+            PublishInventoryChangedEventOnUowCompleted(uow, productInventory.ProductId, productInventory.ProductSkuId,
                 originalInventory, productInventory.Inventory, productInventory.Sold);
 
+            await uow.CompleteAsync();
+            
             return true;
         }
 
@@ -96,27 +98,29 @@ namespace EasyAbp.EShop.Products.Products
                 return false;
             }
 
+            using var uow = _unitOfWorkManager.Begin(isTransactional: true);
+
             await _productInventoryRepository.UpdateAsync(productInventory, true);
 
-            PublishInventoryChangedEventOnUowCompleted(productInventory.ProductId, productInventory.ProductSkuId,
+            PublishInventoryChangedEventOnUowCompleted(uow, productInventory.ProductId, productInventory.ProductSkuId,
                 originalInventory, productInventory.Inventory, productInventory.Sold);
+
+            await uow.CompleteAsync();
 
             return true;
         }
 
-        protected virtual void PublishInventoryChangedEventOnUowCompleted(Guid productId, Guid productSkuId,
-            int originalInventory, int newInventory, long sold)
+        protected virtual void PublishInventoryChangedEventOnUowCompleted(IUnitOfWork uow, Guid productId,
+            Guid productSkuId, int originalInventory, int newInventory, long sold)
         {
-            _unitOfWorkManager.Current.OnCompleted(async () => await _distributedEventBus.PublishAsync(
-                new ProductInventoryChangedEto
-                {
-                    ProductId = productId,
-                    ProductSkuId = productSkuId,
-                    OriginalInventory = originalInventory,
-                    NewInventory = newInventory,
-                    Sold = sold
-                }
-            ));
+            uow.OnCompleted(async () => await _distributedEventBus.PublishAsync(new ProductInventoryChangedEto
+            {
+                ProductId = productId,
+                ProductSkuId = productSkuId,
+                OriginalInventory = originalInventory,
+                NewInventory = newInventory,
+                Sold = sold
+            }));
         }
     }
 }

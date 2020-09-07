@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyAbp.EShop.Orders.Orders.Dtos;
-using EasyAbp.EShop.Products.ProductInventories;
 using EasyAbp.EShop.Products.Products;
 using EasyAbp.EShop.Products.Products.Dtos;
-using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Guids;
-using Volo.Abp.Json;
 using Volo.Abp.MultiTenancy;
+using Volo.Abp.ObjectExtending;
 using Volo.Abp.Users;
 
 namespace EasyAbp.EShop.Orders.Orders
@@ -38,33 +35,41 @@ namespace EasyAbp.EShop.Orders.Orders
             _productSkuDescriptionProvider = productSkuDescriptionProvider;
         }
         
-        public virtual async Task<Order> GenerateAsync(CreateOrderDto input, Dictionary<Guid, ProductDto> productDict, Dictionary<string, object> orderExtraProperties)
+        public virtual async Task<Order> GenerateAsync(CreateOrderDto input, Dictionary<Guid, ProductDto> productDict)
         {
             var orderLines = new List<OrderLine>();
 
-            foreach (var orderLine in input.OrderLines)
+            foreach (var inputOrderLine in input.OrderLines)
             {
-                orderLines.Add(await GenerateNewOrderLineAsync(orderLine, productDict));
+                orderLines.Add(await GenerateOrderLineAsync(input, inputOrderLine, productDict));
+            }
+
+            var storeCurrency = await GetStoreCurrencyAsync(input.StoreId);
+
+            if (orderLines.Any(x => x.Currency != storeCurrency))
+            {
+                throw new CurrencyIsLimitException(storeCurrency);
             }
 
             var productTotalPrice = orderLines.Select(x => x.TotalPrice).Sum();
+
+            // Todo: totalPrice may contain other fee.
+            var totalPrice = productTotalPrice;
+            var totalDiscount = orderLines.Select(x => x.TotalDiscount).Sum();
             
             var order = new Order(
                 id: _guidGenerator.Create(),
                 tenantId: _currentTenant.Id,
                 storeId: input.StoreId,
                 customerUserId: _currentUser.GetId(),
-                currency: await GetStoreCurrencyAsync(input.StoreId),
+                currency: storeCurrency,
                 productTotalPrice: productTotalPrice,
-                totalDiscount: orderLines.Select(x => x.TotalDiscount).Sum(),
-                totalPrice: productTotalPrice,
-                refundedAmount: 0,
+                totalDiscount: totalDiscount,
+                totalPrice: totalPrice,
+                actualTotalPrice: totalPrice - totalDiscount,
                 customerRemark: input.CustomerRemark);
-
-            foreach (var orderExtraProperty in orderExtraProperties)
-            {
-                order.SetProperty(orderExtraProperty.Key, orderExtraProperty.Value);
-            }
+            
+            input.MapExtraPropertiesTo(order, MappingPropertyDefinitionChecks.Destination);
 
             order.SetOrderLines(orderLines);
             
@@ -73,31 +78,38 @@ namespace EasyAbp.EShop.Orders.Orders
             return order;
         }
 
-        protected virtual async Task<OrderLine> GenerateNewOrderLineAsync(CreateOrderLineDto input, Dictionary<Guid, ProductDto> productDict)
+        protected virtual async Task<OrderLine> GenerateOrderLineAsync(CreateOrderDto input,
+            CreateOrderLineDto inputOrderLine, Dictionary<Guid, ProductDto> productDict)
         {
-            var product = productDict[input.ProductId];
-            var productSku = product.GetSkuById(input.ProductSkuId);
+            var product = productDict[inputOrderLine.ProductId];
+            var productSku = product.GetSkuById(inputOrderLine.ProductSkuId);
 
-            if (!input.Quantity.IsBetween(productSku.OrderMinQuantity, productSku.OrderMaxQuantity))
+            if (!inputOrderLine.Quantity.IsBetween(productSku.OrderMinQuantity, productSku.OrderMaxQuantity))
             {
-                throw new OrderLineInvalidQuantityException(product.Id, productSku.Id, input.Quantity);
+                throw new OrderLineInvalidQuantityException(product.Id, productSku.Id, inputOrderLine.Quantity);
             }
             
+            var totalPrice = productSku.Price * inputOrderLine.Quantity;
+
             return new OrderLine(
                 id: _guidGenerator.Create(),
                 productId: product.Id,
                 productSkuId: productSku.Id,
                 productModificationTime: product.LastModificationTime ?? product.CreationTime,
                 productDetailModificationTime: productSku.LastModificationTime ?? productSku.CreationTime,
-                productTypeName: product.ProductTypeName,
-                productName: product.DisplayName,
+                productGroupName: product.ProductGroupName,
+                productGroupDisplayName: product.ProductGroupDisplayName,
+                productUniqueName: product.UniqueName,
+                productDisplayName: product.DisplayName,
+                skuName: productSku.Name,
                 skuDescription: await _productSkuDescriptionProvider.GenerateAsync(product, productSku),
                 mediaResources: product.MediaResources,
                 currency: productSku.Currency,
                 unitPrice: productSku.Price,
-                totalPrice: productSku.Price * input.Quantity,
+                totalPrice: totalPrice,
                 totalDiscount: 0,
-                quantity: input.Quantity
+                actualTotalPrice: totalPrice,
+                quantity: inputOrderLine.Quantity
             );
         }
 

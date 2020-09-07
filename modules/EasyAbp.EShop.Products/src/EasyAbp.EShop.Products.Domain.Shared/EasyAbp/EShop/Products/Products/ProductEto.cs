@@ -3,15 +3,16 @@ using System.Collections.Generic;
 
 namespace EasyAbp.EShop.Products.Products
 {
+    [Serializable]
     public class ProductEto : IProduct
     {
         public Guid Id { get; set; }
         
-        public Guid ProductTypeId { get; set; }
-
+        public string ProductGroupName { get; set; }
+        
         public Guid ProductDetailId { get; set; }
 
-        public string Code { get; set; }
+        public string UniqueName { get; set; }
 
         public string DisplayName { get; set; }
 

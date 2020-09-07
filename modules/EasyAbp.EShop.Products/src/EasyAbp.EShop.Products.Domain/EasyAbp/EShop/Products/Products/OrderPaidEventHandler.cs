@@ -33,9 +33,9 @@ namespace EasyAbp.EShop.Products.Products
         
         public virtual async Task HandleEventAsync(OrderPaidEto eventData)
         {
-            using var changeTenant = _currentTenant.Change(eventData.Order.TenantId);
-
             using var uow = _unitOfWorkManager.Begin(isTransactional: true);
+            
+            using var changeTenant = _currentTenant.Change(eventData.Order.TenantId);
 
             var models = new List<ConsumeInventoryModel>();
                 

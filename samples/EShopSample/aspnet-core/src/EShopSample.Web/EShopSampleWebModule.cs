@@ -14,12 +14,10 @@ using EasyAbp.EShop.Products.Web;
 using EasyAbp.EShop.Stores;
 using EasyAbp.EShop.Stores.Web;
 using EasyAbp.EShop.Web;
-using EasyAbp.PaymentService;
+using EasyAbp.PaymentService.Prepayment.Web;
 using EasyAbp.PaymentService.Web;
-using EasyAbp.PaymentService.WeChatPay;
 using EasyAbp.PaymentService.WeChatPay.Web;
 using Localization.Resources.AbpUi;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -30,28 +28,21 @@ using EShopSample.Localization;
 using EShopSample.MultiTenancy;
 using EShopSample.Web.Menus;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Swagger;
 using Volo.Abp;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.Localization;
-using Volo.Abp.AspNetCore.Mvc.UI;
-using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap;
-using Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Basic;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
 using Volo.Abp.AspNetCore.Serilog;
 using Volo.Abp.Autofac;
 using Volo.Abp.AutoMapper;
-using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity.Web;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
-using Volo.Abp.PermissionManagement.Web;
 using Volo.Abp.TenantManagement.Web;
 using Volo.Abp.UI.Navigation.Urls;
-using Volo.Abp.UI;
 using Volo.Abp.UI.Navigation;
 using Volo.Abp.VirtualFileSystem;
 
@@ -71,8 +62,9 @@ namespace EShopSample.Web
         typeof(EShopWebModule),
         typeof(EShopPluginsBasketsWebModule),
         typeof(PaymentServiceWebModule),
-        typeof(PaymentServiceWeChatPayWebModule)
-        )]
+        typeof(PaymentServiceWeChatPayWebModule),
+        typeof(PaymentServicePrepaymentWebModule)
+    )]
     public class EShopSampleWebModule : AbpModule
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -110,40 +102,7 @@ namespace EShopSample.Web
         {
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
-                options.ConventionalControllers.Create(typeof(EShopOrdersApplicationModule).Assembly, opt =>
-                {
-                    opt.RootPath = "eShop/orders";
-                });
-                options.ConventionalControllers.Create(typeof(EShopPaymentsApplicationModule).Assembly, opt =>
-                {
-                    opt.RootPath = "eShop/payments";
-                });
-                options.ConventionalControllers.Create(typeof(EShopPluginsApplicationModule).Assembly, opt =>
-                {
-                    opt.RootPath = "eShop/plugins";
-                });
-                options.ConventionalControllers.Create(typeof(EShopProductsApplicationModule).Assembly, opt =>
-                {
-                    opt.RootPath = "eShop/products";
-                });
-                options.ConventionalControllers.Create(typeof(EShopStoresApplicationModule).Assembly, opt =>
-                {
-                    opt.RootPath = "eShop/stores";
-                });
-                
-                options.ConventionalControllers.Create(typeof(EShopPluginsBasketsApplicationModule).Assembly, opt =>
-                {
-                    opt.RootPath = "eShop/plugins/baskets";
-                });
-                
-                options.ConventionalControllers.Create(typeof(PaymentServiceApplicationModule).Assembly, opt =>
-                {
-                    opt.RootPath = "paymentService";
-                });
-                options.ConventionalControllers.Create(typeof(PaymentServiceWeChatPayApplicationModule).Assembly, opt =>
-                {
-                    opt.RootPath = "paymentService/weChatPay";
-                });
+                options.ConventionalControllers.Create(typeof(EShopSampleApplicationModule).Assembly);
             });
         }
 

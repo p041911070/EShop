@@ -1,16 +1,20 @@
 using System;
 using System.Collections.Generic;
+using EasyAbp.PaymentService.Payments;
 using Volo.Abp.Application.Dtos;
 
 namespace EasyAbp.EShop.Payments.Payments.Dtos
 {
-    public class PaymentDto : ExtensibleFullAuditedEntityDto<Guid>
+    [Serializable]
+    public class PaymentDto : ExtensibleFullAuditedEntityDto<Guid>, IPayment
     {
-        public Guid? StoreId { get; set; }
-        
+        #region Base properties
+
         public Guid UserId { get; set; }
         
         public string PaymentMethod { get; set; }
+        
+        public string PayeeAccount { get; set; }
 
         public string ExternalTradingCode { get; set; }
 
@@ -23,11 +27,15 @@ namespace EasyAbp.EShop.Payments.Payments.Dtos
         public decimal ActualPaymentAmount { get; set; }
 
         public decimal RefundAmount { get; set; }
+        
+        public decimal PendingRefundAmount { get; set; }
 
         public DateTime? CompletionTime { get; set; }
         
         public DateTime? CanceledTime { get; set; }
-
+        
+        #endregion
+        
         public List<PaymentItemDto> PaymentItems { get; set; }
     }
 }

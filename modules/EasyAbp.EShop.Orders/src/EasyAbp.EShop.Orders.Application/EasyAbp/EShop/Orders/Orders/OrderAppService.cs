@@ -6,45 +6,43 @@ using EasyAbp.EShop.Orders.Authorization;
 using EasyAbp.EShop.Orders.Orders.Dtos;
 using EasyAbp.EShop.Products.Products;
 using EasyAbp.EShop.Products.Products.Dtos;
+using EasyAbp.EShop.Stores.Stores;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
-using Volo.Abp.Application.Services;
 using Volo.Abp.Users;
 
 namespace EasyAbp.EShop.Orders.Orders
 {
     [Authorize]
-    public class OrderAppService : CrudAppService<Order, OrderDto, Guid, GetOrderListDto, CreateOrderDto>,
+    public class OrderAppService : MultiStoreCrudAppService<Order, OrderDto, Guid, GetOrderListDto, CreateOrderDto>,
         IOrderAppService
     {
         protected override string CreatePolicyName { get; set; } = OrdersPermissions.Orders.Create;
-        protected override string GetPolicyName { get; set; } = OrdersPermissions.Orders.Default;
-        protected override string GetListPolicyName { get; set; } = OrdersPermissions.Orders.Default;
-        
+        protected override string GetPolicyName { get; set; } = OrdersPermissions.Orders.Manage;
+        protected override string GetListPolicyName { get; set; } = OrdersPermissions.Orders.Manage;
+        protected override string CrossStorePolicyName { get; set; } = OrdersPermissions.Orders.CrossStore;
+
         private readonly INewOrderGenerator _newOrderGenerator;
         private readonly IProductAppService _productAppService;
-        private readonly IPurchasableCheckManager _purchasableCheckManager;
-        private readonly IOrderDiscountManager _orderDiscountManager;
+        private readonly IOrderManager _orderManager;
         private readonly IOrderRepository _repository;
 
         public OrderAppService(
             INewOrderGenerator newOrderGenerator,
             IProductAppService productAppService,
-            IPurchasableCheckManager purchasableCheckManager,
-            IOrderDiscountManager orderDiscountManager,
+            IOrderManager orderManager,
             IOrderRepository repository) : base(repository)
         {
             _newOrderGenerator = newOrderGenerator;
             _productAppService = productAppService;
-            _purchasableCheckManager = purchasableCheckManager;
-            _orderDiscountManager = orderDiscountManager;
+            _orderManager = orderManager;
             _repository = repository;
         }
 
         protected override IQueryable<Order> CreateFilteredQuery(GetOrderListDto input)
         {
-            var query = base.CreateFilteredQuery(input);
+            var query = _repository.WithDetails();
 
             if (input.StoreId.HasValue)
             {
@@ -63,16 +61,7 @@ namespace EasyAbp.EShop.Orders.Orders
         {
             if (input.CustomerUserId != CurrentUser.GetId())
             {
-                await AuthorizationService.CheckAsync(OrdersPermissions.Orders.Manage);
-
-                if (input.StoreId.HasValue)
-                {
-                    // Todo: Check if current user is an admin of the store.
-                }
-                else
-                {
-                    await AuthorizationService.CheckAsync(OrdersPermissions.Orders.CrossStore);
-                }
+                await CheckMultiStorePolicyAsync(input.StoreId, GetListPolicyName);
             }
 
             return await base.GetListAsync(input);
@@ -80,17 +69,13 @@ namespace EasyAbp.EShop.Orders.Orders
 
         public override async Task<OrderDto> GetAsync(Guid id)
         {
-            await CheckGetPolicyAsync();
-
             var order = await GetEntityByIdAsync(id);
 
             if (order.CustomerUserId != CurrentUser.GetId())
             {
-                await AuthorizationService.CheckAsync(OrdersPermissions.Orders.Manage);
-
-                // Todo: Check if current user is an admin of the store.
+                await CheckMultiStorePolicyAsync(order.StoreId, GetPolicyName);
             }
-            
+
             return MapToGetOutputDto(order);
         }
 
@@ -103,13 +88,18 @@ namespace EasyAbp.EShop.Orders.Orders
             var productDict = await GetProductDictionaryAsync(input.OrderLines.Select(dto => dto.ProductId).ToList(),
                 input.StoreId);
 
-            var orderExtraProperties = new Dictionary<string, object>();
+            await AuthorizationService.CheckAsync(
+                new OrderCreationResource
+                {
+                    Input = input,
+                    ProductDictionary = productDict
+                },
+                new OrderOperationAuthorizationRequirement(OrderOperation.Creation)
+            );
 
-            await _purchasableCheckManager.CheckAsync(input, productDict, orderExtraProperties);
-            
-            var order = await _newOrderGenerator.GenerateAsync(input, productDict, orderExtraProperties);
+            var order = await _newOrderGenerator.GenerateAsync(input, productDict);
 
-            await _orderDiscountManager.DiscountAsync(order, input.ExtraProperties);
+            await _orderManager.DiscountAsync(order, input.ExtraProperties);
 
             await Repository.InsertAsync(order, autoSave: true);
 
@@ -121,7 +111,7 @@ namespace EasyAbp.EShop.Orders.Orders
         {
             var dict = new Dictionary<Guid, ProductDto>();
 
-            foreach (var productId in productIds)
+            foreach (var productId in productIds.Distinct().ToList())
             {
                 dict.Add(productId, await _productAppService.GetAsync(productId, storeId));
             }
@@ -134,7 +124,7 @@ namespace EasyAbp.EShop.Orders.Orders
         {
             throw new NotSupportedException();
         }
-        
+
         [RemoteService(false)]
         public override Task DeleteAsync(Guid id)
         {
@@ -149,11 +139,41 @@ namespace EasyAbp.EShop.Orders.Orders
 
             if (order.CustomerUserId != CurrentUser.GetId())
             {
+                await CheckMultiStorePolicyAsync(order.StoreId, OrdersPermissions.Orders.Manage);
+            }
+
+            return MapToGetOutputDto(order);
+        }
+
+        [Authorize(OrdersPermissions.Orders.Complete)]
+        public virtual async Task<OrderDto> CompleteAsync(Guid id)
+        {
+            var order = await GetEntityByIdAsync(id);
+
+            if (order.CustomerUserId != CurrentUser.GetId())
+            {
+                await CheckMultiStorePolicyAsync(order.StoreId, OrdersPermissions.Orders.Manage);
+            }
+
+            order = await _orderManager.CompleteAsync(order);
+
+            return MapToGetOutputDto(order);
+        }
+        
+        [Authorize(OrdersPermissions.Orders.Cancel)]
+        public virtual async Task<OrderDto> CancelAsync(Guid id, CancelOrderInput input)
+        {
+            var order = await GetEntityByIdAsync(id);
+
+            if (order.IsPaid() || order.CustomerUserId != CurrentUser.GetId())
+            {
                 await AuthorizationService.CheckAsync(OrdersPermissions.Orders.Manage);
 
                 // Todo: Check if current user is an admin of the store.
             }
-            
+
+            order = await _orderManager.CancelAsync(order, input.CancellationReason);
+
             return MapToGetOutputDto(order);
         }
     }
